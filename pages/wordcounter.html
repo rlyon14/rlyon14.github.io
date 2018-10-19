@@ -1,0 +1,347 @@
+
+
+
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<title>Word counter</title>
+
+<style type="text/css">
+body {
+	font-family: arial;
+	color: darkcyan;
+	font-size: 70%;}
+h1 {
+	color: darkcyan;
+	background-color: rgba(50,50,50,0.2); }
+
+#total_fw {
+	font-weight: bold; 
+	font-size: 120%; 
+	height: 40px;
+	width:400px
+	vertical-align:text-bottom}
+
+#total_all {
+	font-weight: bold; 
+	font-size: 120%; 
+	height: 40px;
+	width:400px
+	vertical-align:text-bottom}
+
+
+#out_fw {
+	vertical-align:text-top; }
+
+#out_total {
+	vertical-align:text-top; }
+
+#hdboxleft {
+	height: 60px;
+	width: 400px;
+	vertical-align:text-top; }
+
+
+#hdboxright {
+	height: 60px;
+	width: 300px;
+	vertical-align:text-top; }
+
+
+
+	
+	
+</style>
+
+</head>
+
+
+
+<body>
+
+<textarea id= "text" cols ="80" rows = "20" placeholder = "Enter here"></textarea>
+
+
+<table class ="one">
+<tr>
+
+<td id= "hdboxleft">
+
+
+<span>
+<h2>Search most frequent words: </h2> 
+
+Ignore 3 letter words?
+
+<input type="checkbox" id="skip3" value="yes"/>
+</span>
+
+<br/>
+
+
+<span>Results to display:</span>
+
+<select id ="answers">
+<option value="10">
+10
+</option>
+
+<option value="20">
+20
+</option>
+
+<option value="30">
+30
+</option>
+
+<option value="50">
+50
+</option>
+
+<option value="All">
+All
+</option>
+
+</select>
+
+
+<button type= "button" onclick="getText()">Go</button>
+<br/>
+</td>
+
+<td id = "hdboxright">
+<span>
+<h2>Or search specific word: </h2>
+
+Enter word:
+<input type="text" id="word" size = "15" maxlength = "30"/>
+</span>
+
+
+
+<br/>
+<span>Exact match?
+<input type="checkbox" id="exmatch" value="yes"/>
+</span>
+
+
+
+
+<button type= "button" onclick="findword()">Search</button>
+<br/>
+</td>
+
+
+
+</tr>
+
+<tr>
+<td id ="total_all"></td>
+<td id ="total_fw"></td>
+</tr>
+
+<tr>
+<td id= "out_total"></td>
+<td id = "out_fw"></td>
+
+</tr>
+
+
+</table>
+
+<script>
+
+var list = [];
+
+function getText() {
+
+    var skip3 = document.getElementById("skip3").checked;
+	console.log(skip3);
+
+    document.getElementById("out_total").innerHTML = "";
+    document.getElementById("total_all").innerHTML = "Total words: ";
+
+    list = document.getElementById("text").value.split(/[\s.?!-]/);
+    var len = list.length; 
+
+    var alpha = /[^a-z]/gi;
+
+    for(var q= 0; q < len; q++) {
+ list[q]=list[q].replace(/[^a-z]/gi, "");
+
+ if(list[q] == "" || (list[q].length < 4 && skip3))
+ 	delete list[q];
+
+ if(list[q] && list[q].length > 1)
+ 	list[q]=list[q].toLowerCase();
+
+   
+
+}
+    list.sort();
+
+    console.log(list);
+
+    var hash = [];
+    
+    var total = 0;
+
+for (var i= 0; i < len; ) {
+    
+    if(!list[i]) {
+ i++;
+ continue; }
+
+    var word = list[i];
+    var cnt = 1;
+    total++;
+   
+    while ((list[i] == list[++i]) && (i < len)) {
+       cnt++;
+       total++;
+    }
+    
+    if (hash[cnt])
+        hash[cnt].push(word);
+    else {
+        hash[cnt] = [];
+        hash[cnt].push(word);
+    }
+}
+
+var disp = document.getElementById("answers").value;
+if(disp == "All")
+	disp = hash.length;
+
+document.getElementById("total_all").insertAdjacentHTML("beforeend", total);
+
+for(var k = hash.length -1; k >= 0 ; k--) {
+ 
+ if (hash[k])  {
+ 
+ 
+ if(disp-- == 0)
+	break;
+ document.getElementById("out_total").insertAdjacentHTML("beforeend", k + ": ");
+
+ for(var j = 0; j < hash[k].length; j++) {
+  
+      document.getElementById("out_total").insertAdjacentHTML("beforeend", (hash[k])[j]); 
+
+ if (j != hash[k].length - 1)
+  document.getElementById("out_total").insertAdjacentHTML("beforeend", ", "); } 
+  
+ 
+  document.getElementById("out_total").insertAdjacentHTML("beforeend", "<br/>"); 
+
+  if(hash[k].length > 20)
+   document.getElementById("out_total").insertAdjacentHTML("beforeend", "<br/>"); }
+
+}   
+
+
+
+
+}
+
+function findword() {
+
+    var word = document.getElementById("word").value.toLowerCase();
+    var exmatch = document.getElementById("exmatch").checked;
+
+    document.getElementById("out_fw").innerHTML = "";
+if(word)
+    document.getElementById("total_fw").innerHTML = "Words with ";
+else
+    document.getElementById("total_fw").innerHTML = "Words: ";
+    
+
+    list = document.getElementById("text").value.split(/[\s.?/!-]/);
+    var len = list.length; 
+
+    var alpha = /[^a-z]/gi;
+
+    for(var q= 0; q < len; q++) {
+ list[q]=list[q].replace(/[^a-z]/gi, "");
+
+ if(list[q] && list[q].length > 1)
+ 	list[q]=list[q].toLowerCase();
+
+   
+
+}
+    list.sort();
+
+    console.log(list);
+
+    var hash = [];
+
+    var total = 0;
+
+for (var i= 0; i < len; ) {
+    
+    if(!list[i] || list[i].search(word)== -1) {
+ i++;
+ continue; }
+
+    if(exmatch && list[i] != word) {
+	i++;
+	continue; }
+	
+
+    var find = list[i];
+    var cnt = 1;
+    total++;
+    
+   
+    while ((list[i] == list[++i]) && (i < len)) {
+       cnt++;
+       total ++;
+       
+    }
+    
+    if (hash[cnt])
+        hash[cnt].push(find);
+    else {
+        hash[cnt] = [];
+        hash[cnt].push(find);
+    }
+}
+
+if(word)
+	document.getElementById("total_fw").insertAdjacentHTML("beforeend", "'" + word +"'"+": " + total);
+else
+	document.getElementById("total_fw").insertAdjacentHTML("beforeend", total);
+
+
+for(var k = hash.length -1; k >= 0 ; k--) {
+ 
+ if (hash[k])  {
+ 
+ //document.getElementById("out_fw").insertAdjacentHTML("beforeend", k + ": ");
+
+ for(var j = 0; j < hash[k].length; j++) {
+      
+      document.getElementById("out_fw").insertAdjacentHTML("beforeend", (hash[k])[j] + ": " + k + "<br/>"); 
+
+ } 
+  
+ 
+  }
+
+  
+
+}
+
+
+}
+</script>
+
+
+
+
+</body>
+</html>
