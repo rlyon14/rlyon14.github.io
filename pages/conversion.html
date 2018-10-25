@@ -1,0 +1,265 @@
+
+
+
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<title>Cooking Conversion</title>
+
+<div class="conversion" align="left">
+    <label for="cbatches">Batches:</label>
+    
+    <input type="text" id="cbatches" name="uname" size="5"/>
+    <input type="checkbox" id="metric" value="no"/>
+    <span>
+    Output in metric?
+    </span>
+    <br>
+    
+    <label for="camount">Amount:</label>
+    <input type="text" id="camount" name="uname" size="5"/>
+   <select id ="unit_options">
+    <option value="cup">
+    cup
+    </option>
+
+    <option value="tablespoon">
+    tablespoon
+    </option>
+
+    <option value="teaspoon">
+    teaspoon
+    </option>
+
+    <option value="fluid ounce">
+    fluid ounce
+    </option>
+
+    <option value="pound">
+    pound
+    </option>
+    
+    <option value="ounce">
+    ounce
+    </option>
+    
+    <option value="gram">
+    gram
+    </option>
+    
+    <option value="mL">
+    mL
+    </option>
+
+    </select>
+
+
+    <button type= "button" onclick="javascript:convertUnit()">Go</button>
+
+    <p id="pamount"><font size="18"></font></p>
+    
+<script>
+
+var cup_fractions = [3/4, 2/3, 1/2, 1/3, 1/4];
+var cup_fractions_l = ['3/4', '2/3', '1/2', '1/3', '1/4'];
+var tsp_fractions = [3/4, 1/2, 1/4, 1/8];
+var tsp_fractions_l = ['3/4', '1/2', '1/4', '1/8'];
+    
+function convertUnit() {
+    var raw_amt = document.getElementById("camount").value;
+    var raw_batches = document.getElementById("cbatches").value;
+    var metric = document.getElementById("metric").checked;
+    var unit = document.getElementById("unit_options").value;
+    var amt = parseValue(raw_amt); 
+    var batches = parseValue(raw_batches);
+    
+    unit = unit.toLowerCase();
+    var us_volume = ['cup', 'fluid ounce', 'tablespoon', 'teaspoon'];
+    var us_volume_conv = [48, 6, 3, 1];
+    var us_weight = ['pound', 'ounce'];
+    var us_weight_conv = [16, 1];
+
+    var oz2gram = 28.3495;
+    var tsp2mL = 4.92892;
+    var metric_mass = ['kg', 'gram'];
+    var metric_conv = [1, 1000];
+    
+    var rtnstring = '';
+    if (us_volume.indexOf(unit) > -1){
+        var idx = us_volume.indexOf(unit);
+        var t = us_volume_conv[idx]*batches*amt;
+        if (metric){
+            var mL = t*tsp2mL;
+            mL = Math.round(mL*100)/100
+            rtnstring = '{0} mL'.format(mL);
+        }
+        else{
+            rtnstring = us_customary(t, unit, us_volume, us_volume_conv);
+        }
+    }
+    else if (us_weight.indexOf(unit) > -1){
+        var idx = us_weight.indexOf(unit);
+        var t = us_weight_conv[idx]*batches*amt;
+        if (metric){
+            var grams = t*oz2gram;
+            var p = (grams > 1) ? 's' : '';
+            grams = Math.round(grams*100)/100
+            rtnstring = '{0} gram{1}'.format(grams, p);
+        }
+        else{
+            rtnstring = us_customary(t, unit, us_weight, us_weight_conv);
+        }
+    }
+    else if (unit == 'gram'){
+        var grams = amt*batches;
+        if (metric){
+            var p = (grams > 1) ? 's' : '';
+            grams = Math.round(grams*100)/100
+            rtnstring = '{0} gram{1}'.format(grams, p);
+        }
+        else{
+            var oz = grams/oz2gram;
+            rtnstring = us_customary(oz, 'ounce', us_weight, us_weight_conv);
+        }
+    }
+    else if (unit == 'ml'){
+        var mL = amt*batches;
+        mL = Math.round(mL*100)/100;
+        if (metric){
+            rtnstring = '{0} mL'.format(mL);
+        }
+        else{
+            var t= mL/tsp2mL;
+            rtnstring = us_customary(t, 'teaspoon', us_volume, us_volume_conv);
+        }
+    }
+    console.log(rtnstring)
+    document.getElementById("pamount").innerHTML = rtnstring;
+    
+}
+
+//this is why the US should just use metric. For shame America, for shame. 
+function us_customary(t, unit, units, conv){
+    t=t+0.1
+    var runit = ['','', ''];
+    var ramt = [0,0,0];
+    var rfrac =['','',''];
+    var u = 0;
+    var i;
+
+    for (i = 0; i < units.length; i++){ 
+        if ((unit != 'fluid ounce') && (units[i] == 'fluid ounce')){
+            continue;
+        }
+        var w = Math.floor(t / conv[i]);
+        var r = t % conv[i];
+        //console.log(r)
+        if (w > 0){
+            t = t - (w*conv[i]);
+            ramt[u] = Math.floor(w);
+            runit[u] = units[i];
+        }
+
+        if ((units[i] == 'cup') || (units[i] == 'teaspoon')) {
+            var fractions =  (units[i] == 'cup') ? cup_fractions : tsp_fractions;
+            var fractions_l = (units[i] == 'cup') ? cup_fractions_l : tsp_fractions_l;
+
+            var cfrac = -1;
+            var f;
+            for (f = 0; f < fractions.length; f++){ 
+                var fr = r/conv[i];
+                var rw = Math.floor(fr / fractions[f]);
+                rr = fr % fractions[f];
+                if (rw > 0){
+                    if (rr*48 < 0.2){
+                        cfrac = f;
+                        break;
+                    }
+                    //prefer the largest cup fraction that leaves a remainder of multiples of tablespoons
+                    else if (((rr*48)/3 > 1) && ((rr*48) % 1 < 0.2) && (units[i] == 'cup')){
+                        cfrac = f;
+                        break;
+                    }
+                    else if (cfrac == -1){
+                        cfrac = f;
+                    }
+                }
+            }
+            if (cfrac != -1){
+                runit[u] = units[i];
+                rfrac[u] = fractions_l[cfrac];
+                t = t- (fractions[cfrac]*conv[i]);
+            }
+        }
+        if ((ramt[u] != 0) || (rfrac[u].trim() != '')){
+            u=u+1;
+        }
+        if (u >2) {
+            break;
+        }
+    } 
+
+    var str1 = '';
+    var u;
+    for (u=0; u < 3; u++){
+        var str_t = '';
+        if (ramt[u] > 0){
+            str_t +='{0}'.format(ramt[u]);
+        }
+        str_t += (' ' + rfrac[u]);
+        str_t = str_t.trim();
+        if (ramt[u] > 1){
+            str_t += ' ' +runit[u] +'s';
+        }
+        else{
+            str_t += ' ' +runit[u];
+        }
+        if ((str1.trim() != '') && (str_t.trim() != '')){
+            str1 += ' + '+str_t.trim();
+        }
+        else{
+            str1 += str_t.trim();
+        }
+    }
+    
+    t = Math.round((t-.1)*100)/100;
+    //console.log('{0}'.format(t));
+    return str1;
+
+}
+
+function parseValue(value){
+    var svalue = value.split(' ');
+    //console.log(svalue)
+    var val = 0
+    var i;
+    for (i = 0; i < svalue.length; i++){
+        frac = svalue[i].split('/');
+        if (frac.length > 1){
+            val += parseFloat(frac[0])/parseFloat(frac[1]);
+        }
+        else {
+            val += parseFloat(svalue[i]);
+            //console.log(val)
+        }
+        
+    }
+    return val;
+}
+
+String.prototype.format = function() {
+  a = this;
+  for (k in arguments) {      
+    a = a.replace("{" + k + "}", arguments[k])
+  }
+  return a
+}
+
+</script>
+
+
+</body>
+</html>
