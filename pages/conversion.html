@@ -10,7 +10,21 @@
 <style>
 .button.big { width: 100px; height: 50px; }
 
+#hdmain {
+	height: 400px;
+	width: 400px;
+	vertical-align:text-top; }
+
+
+#hdfeedback {
+	height: 60px;
+	width: 300px;
+	vertical-align:text-top; }
+
 </style>
+<table>
+<tr>
+<td id="hdmain">
 <div class="conversion" align="left">
     <label for="cbatches">Batches:</label>
     
@@ -63,40 +77,65 @@
     </select>
     <input type="text" id="ingtype" name="ingtype" size="5"/>
     <br>
-    <button type= "button" class = "button" onclick="javascript:convertUnit()">Go</button>
+    <button type= "button" class = "button" id="convertBtn" onclick="javascript:convertUnit()">Go</button>
     <button type= "button" class = "button" onclick="javascript:clearOutput()">Clear</button>
     <p id="pamount"><font size="18"></font></p>
-    <br/>
-    <br/>
-    <br/>
-    <br/>
-    
+</div>
+</td>
+</tr>
+ 
+ <tr>   
 
-    
+  <td id="hdfeedback">  
     <textarea id="entry.2001585655" name="entry.2001585655" form="gform" cols ="50" rows = "5" placeholder="Feedback..." ></textarea>
-        <form name="gform" id="gform" enctype="text/plain" action="https://docs.google.com/forms/d/e/1FAIpQLSc-VEfZWjgRAAjiAfWibAfs8uvwWUvC5Y_COH6GsQrkGqh7XQ/formResponse?" target="hidden_iframe" onsubmit="submitted=true;">
-  <input type="submit" value="Submit">
+        <form name="gform" id="gform" enctype="text/plain" action="https://docs.google.com/forms/d/e/1FAIpQLSc-VEfZWjgRAAjiAfWibAfs8uvwWUvC5Y_COH6GsQrkGqh7XQ/formResponse?" target="hidden_iframe" onsubmit="javascript:feedbackSubmit()">
+  <input type="submit" value="Submit" id="submitfeedback">
     </form>
-        <iframe name="hidden_iframe" id="hidden_iframe" style="display:none;" onload="if(submitted) {}"></iframe>
-    
-    
-    
-<script src="assets/js/jquery.min.js"></script>
-<script type="text/javascript">var submitted=false;</script>
-<script type="text/javascript">
-$('#gform').on('submit', function(e) {
-  $('#gform *').fadeOut(2000);
-  $('#gform').prepend('Your submission has been processed...');
-  });
-</script>
-
-
-
-
-
-
+	<iframe name="hidden_iframe" id="hidden_iframe" style="display:none;"></iframe> 
+</td>
+ </tr>   
+</table>
 
 <script>
+var submitted = false;
+clearOutput();
+document.getElementById("cbatches").value = 1
+
+var input = document.getElementById("camount");
+input.addEventListener("keyup", function(event) {
+  if (event.keyCode === 13) {
+    document.getElementById("convertBtn").click();
+  }
+});
+
+var input = document.getElementById("ingtype");
+input.addEventListener("keyup", function(event) {
+  if (event.keyCode === 13) {
+    document.getElementById("convertBtn").click();
+  }
+});
+
+var input = document.getElementById("unit_options");
+input.addEventListener("keyup", function(event) {
+  if (event.keyCode === 13) {
+    document.getElementById("convertBtn").click();
+  }
+});
+
+var input = document.getElementById("cbatches");
+input.addEventListener("keyup", function(event) {
+  if (event.keyCode === 13) {
+    document.getElementById("convertBtn").click();
+  }
+});
+
+
+function feedbackSubmit(){
+	submitted = true;
+	document.getElementById("entry.2001585655").style.display = 'none';
+	document.getElementById("submitfeedback").style.display = 'none';
+	window.alert('Thanks! Your input has been submitted and will be ignored.')	
+}
 
 function clearOutput(){
     document.getElementById("ingtype").value = '';
@@ -115,9 +154,12 @@ function convertUnit() {
     var unit = document.getElementById("unit_options").value;
     var ingtype = document.getElementById("ingtype").value;
     
+	document.getElementById("camount").value = ''
+	document.getElementById("ingtype").value = ''
+
     var letter = /[^\s0-9./]/;
-    if((raw_amt.match(letter)) || (raw_batches.match(letter))){
-        window.alert("Try again. Fractions can be entered using a foward slash, e.g 1 1/2 = 1.5")
+    if((raw_amt.match(letter)) || (raw_batches.match(letter)) || (raw_amt.trim() == '')){
+        window.alert("Try again. Fractions can be entered using a foward slash or with a decimal, e.g 1 1/2 or 1.5")
         return ''
     }
     
@@ -190,9 +232,13 @@ function convertUnit() {
         
     }
     console.log(rtnstring)
-    var pvalue = rtnstring + ' ' + ingtype.trim()
+	var pvalue = ''
+	if (rtnstring.trim() != ''){
+		pvalue = rtnstring + ' ' + ingtype.trim()
+		document.getElementById("pamount").insertAdjacentHTML("beforeend", pvalue + '<br/>');
+	}
     //document.getElementById("pamount").innerHTML = rtnstring;
-    document.getElementById("pamount").insertAdjacentHTML("beforeend", pvalue + '<br/>');
+    
     
 }
 
